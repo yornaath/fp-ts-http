@@ -2,6 +2,7 @@ import { AggregateRoot } from '@nestjs/cqrs';
 import { BongCreatedEvent } from '../events/impl/bong-created-event';
 
 export class Bong extends AggregateRoot {
+  
   constructor(private readonly id: string, private readonly tokens: any[]) {
     super();
   }
@@ -11,4 +12,5 @@ export class Bong extends AggregateRoot {
     bong.apply(new BongCreatedEvent(id, tokens))
     return bong
   }
+
 }

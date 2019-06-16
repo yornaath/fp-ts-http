@@ -11,8 +11,9 @@ export class CreateBongHandler implements ICommandHandler<CreateBongCommand> {
 
   async execute(command: CreateBongCommand) {
     const bong = this.publisher.mergeObjectContext(
-      await this.repository.create('1', command.tokens)
+      await this.repository.create(command.tokens)
     )
     bong.commit()
+    return bong
   }
 }
