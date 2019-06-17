@@ -14,11 +14,15 @@ export class BongRepository {
   }
 
   async findById(id: string) {
-    return BongProjectionModel.findById(id)
+    const projection = await BongProjectionModel.findById(id)
+    const bong = new Bong(projection.id, projection.tokens)
+    return bong
   }
 
   async list() {
-    return BongProjectionModel.find()
+    const projections = await BongProjectionModel.find()
+    return projections.map(projection => 
+      new Bong(projection.id, projection.tokens))
   }
 
 }

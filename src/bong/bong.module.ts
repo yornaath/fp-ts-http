@@ -8,6 +8,7 @@ import commandHandlers from './commands/handlers'
 import eventHandlers from './events/handlers'
 import queryHandlers from './queries/handlers';
 import { BongCreatedEvent } from './events/impl/bong-created-event'
+import { BongTokenConsumedEvent } from './events/impl/bong-token-consumed.event'
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ export class BongModule implements OnModuleInit {
   }
 
   eventHandlers = {
-    BongCreatedEvent: (data) => new BongCreatedEvent(data.id, data.tokens) 
+    BongCreatedEvent: (data) => new BongCreatedEvent(data.id, data.tokens),
+    BongTokenConsumedEvent: (data) => new BongTokenConsumedEvent(data.bongId, data.tokens)
   }
 
 }

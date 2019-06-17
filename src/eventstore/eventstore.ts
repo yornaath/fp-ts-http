@@ -41,7 +41,8 @@ export class EventStore implements IEventPublisher, IMessageSource {
   }
 
   async replay<T extends IEvent>(subject: Subject<T>) {
-    for await(const eventDoc of await this.eventsCollection.find()) {
+    for await(const eventDoc of await this.eventsCollection.find().sort('created')) {
+      console.log(eventDoc.created)
       const event = this.eventHandlers[eventDoc.type](eventDoc.data)
       subject.next(event)
     }
