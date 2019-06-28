@@ -1,4 +1,3 @@
-
 import { Validation, failure, success } from 'fp-ts/lib/Validation'
 import { IO } from 'fp-ts/lib/IO'
 import { TTokenDto, validate as validateTokenDto } from './Token.dto';
@@ -18,15 +17,13 @@ export const validateSchema = (createBongDto: Record<string, unknown>): Validati
   const { tokens } = createBongDto;
 
   if(!tokens) {
-    errors = [...errors, new ValidationError(":tokens cannot be undefined", none)]
+    errors = [...errors, new ValidationError(":tokens of TCreateBongDto cannot be undefined", none)]
   }
   else if(!isArray(tokens)) {
-    errors = [...errors, new ValidationError(":tokens must be an array", none)]
+    errors = [...errors, new ValidationError(":tokens of TCreateBongDto must be an array", none)]
   }
   else {
-    const tokenDtoValidation = tokens.map(validateTokenDto)
-
-    for(const validation of tokenDtoValidation) {
+    for(const validation of tokens.map(validateTokenDto)) {
       if(validation.isFailure()) {
         errors = [...errors, ...validation.value]
       }
@@ -39,23 +36,14 @@ export const validateSchema = (createBongDto: Record<string, unknown>): Validati
   return success(createBongDto)
 }
 
-export const fromIO = (input: IO<string>): Validation<ValidationError[], TCreateBongDto> => {
-  const parsed = tryCatch2v<ValidationError, Record<string, unknown>>(
-    () => JSON.parse(input.run()), (reason: Error) => new ValidationError("input not valid json", some(reason)))
+export type TCreateBongDtoValidation = Validation<ValidationError[], TCreateBongDto>;
 
+export const fromIO = (input: IO<string>): TCreateBongDtoValidation => {
+  const parsed = tryCatch2v<ValidationError, Record<string, unknown>>(() => JSON.parse(input.run()), 
+    (reason: Error) => new ValidationError("TCreateBongDto input not valid JSON", some(reason)))
   if(parsed.isLeft()) {
     return failure([parsed.value])
+  } else {
+    return validateSchema(parsed.value)
   }
-
-  return validateSchema(parsed.value)
 }
-
-// const valid = fromIO(new IO(() => `{
-//   "tokens": [
-//     {
-//       "id": "123"
-//     }
-//   ]
-// }`));
-
-// console.log(valid);

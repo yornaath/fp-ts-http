@@ -7,9 +7,9 @@ export type TTokenDto = {
   id?: string;
 }
 
-export const validate = (tokenDto: TTokenDto): Validation<ValidationError[], TTokenDto> => {
+export const validate = (tokenDto: Record<string, any>): Validation<ValidationError[], TTokenDto> => {
   const { id } = tokenDto;
   if(!id)
-    return failure([ new ValidationError("id must be a non empty string", none) ])
+    return failure([ new ValidationError(":id of TokenDto must be a non empty string", none) ])
   return success(tokenDto)
 }
