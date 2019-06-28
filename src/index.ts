@@ -9,40 +9,40 @@ import koaBody from "koa-body"
 import { identity } from 'fp-ts/lib/function';
 
 
-export type TResponse<RT> = {
+export type TResponse<RT> = Readonly<{
   status: number,
   body: RT,
   headers: Record<string, string>
-}
+}>
 
-export type TRequest<PT, BT = any> = {
+export type TRequest<PT, BT = any> = Readonly<{
   url: string
   path: PT
   status: number
   body: BT
   headers: Record<string, string>
-}
+}>
 
-export interface IServer {
+export type TServer = Readonly<{
   platform: Koa
   middleware?: Koa.Middleware[]
-}
+}>
 
-export const createServer = (): IServer => {
+export const createServer = (): TServer => {
   return {
     platform: new Koa(),
     middleware: []
   }
 }
 
-export const use = (server: IServer, middleware: Koa.Middleware) => {
+export const use = (server: TServer, middleware: Koa.Middleware): TServer => {
   return {
     ...server,
     middleware: [...(server.middleware || []), middleware]
   }
 }
 
-export const get = <TPath extends object, TResponseBody> (server: IServer, matcher: Match<TPath>, handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>) => {
+export const get = <TPath extends object, TResponseBody> (server: TServer, matcher: Match<TPath>, handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>) => {
   return use(server, async (ctx, next) => {
     
     if(ctx.method.toUpperCase() !== "GET")
@@ -61,7 +61,7 @@ export const get = <TPath extends object, TResponseBody> (server: IServer, match
   })
 }
 
-export const post = <TPath extends object, TRequestBody, TResponseBody> (server: IServer, matcher: Match<TPath>, bodyParser: t.Type<TRequestBody>, handler: (req: TRequest<TPath, TRequestBody>) => Promise<TResponse<TResponseBody>>) => {
+export const post = <TPath extends object, TRequestBody, TResponseBody> (server: TServer, matcher: Match<TPath>, bodyParser: t.Type<TRequestBody>, handler: (req: TRequest<TPath, TRequestBody>) => Promise<TResponse<TResponseBody>>) => {
   return use(server, async (ctx, next) => {
     
     if(ctx.method.toUpperCase() !== "POST")
@@ -104,7 +104,7 @@ const applyResponseToKoaContext = <TResponseBody> (response: TResponse<TResponse
 }
 
 
-export const driver = (server :IServer, port: number) => {
+export const driver = (server :TServer, port: number) => {
   return new Task(() => {
     const middleware = composeMiddleware([koaBody(), ...server.middleware])
     server.platform.use(middleware)
