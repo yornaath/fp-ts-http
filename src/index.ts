@@ -6,6 +6,7 @@ import { Task, task } from 'fp-ts/lib/Task'
 import * as t from "io-ts"
 import { isNull } from 'util';
 import koaBody from "koa-body"
+import { identity } from 'fp-ts/lib/function';
 
 
 export type TResponse<RT> = {
@@ -27,6 +28,13 @@ export interface IServer {
   middleware?: Koa.Middleware[]
 }
 
+export const createServer = (): IServer => {
+  return {
+    platform: new Koa(),
+    middleware: []
+  }
+}
+
 export const use = (server: IServer, middleware: Koa.Middleware) => {
   return {
     ...server,
@@ -34,12 +42,13 @@ export const use = (server: IServer, middleware: Koa.Middleware) => {
   }
 }
 
-export const get = <TPath extends object, TResponseBody> (server: IServer, path: Match<TPath>, pathParser: Parser<TPath>, handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>) => {
+export const get = <TPath extends object, TResponseBody> (server: IServer, matcher: Match<TPath>, handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>) => {
   return use(server, async (ctx, next) => {
     
     if(ctx.method.toUpperCase() !== "GET")
       return next()
 
+    const pathParser = matcher.parser.map(identity)
     const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
 
     if(isNull(match))
@@ -52,12 +61,13 @@ export const get = <TPath extends object, TResponseBody> (server: IServer, path:
   })
 }
 
-export const post = <TPath extends object, TRequestBody, TResponseBody> (server: IServer, path: Match<TPath>, pathParser: Parser<TPath>, bodyParser: t.Type<TRequestBody>, handler: (req: TRequest<TPath, TRequestBody>) => Promise<TResponse<TResponseBody>>) => {
+export const post = <TPath extends object, TRequestBody, TResponseBody> (server: IServer, matcher: Match<TPath>, bodyParser: t.Type<TRequestBody>, handler: (req: TRequest<TPath, TRequestBody>) => Promise<TResponse<TResponseBody>>) => {
   return use(server, async (ctx, next) => {
     
     if(ctx.method.toUpperCase() !== "POST")
       return next()
 
+    const pathParser = matcher.parser.map(identity)
     const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
 
     if(isNull(match))

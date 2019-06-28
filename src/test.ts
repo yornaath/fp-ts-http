@@ -2,17 +2,14 @@
 import Koa from "koa"
 import { end, lit, int } from 'fp-ts-routing'
 import * as t from "io-ts"
-import { get, post, driver, IServer } from "./index"
+import { get, post, driver, createServer } from "./index"
 import { identity } from "io-ts";
 
-let server: IServer = {
-  platform: new Koa()
-}
+let server = createServer()
 
 const userById = lit('users').then(int("userid"))
-const userByIdParser = userById.parser.map(identity)
 
-server = get<{userid: number}, string>(server, userById.then(end), userByIdParser, async(req) => {
+server = get<{userid: number}, string>(server, userById.then(end), async(req) => {
   return {
     status: 200,
     headers: {},
@@ -20,10 +17,10 @@ server = get<{userid: number}, string>(server, userById.then(end), userByIdParse
   }
 })
 
-const userMessages = userById.then(lit("messages")).then(end)
+const userMessages = userById.then(lit("messages"))
 const bodyType = t.type({ message: t.string })
 
-server = post<{userid: number}, {message: string}, string>(server, userMessages, userByIdParser, bodyType, async(req) => {
+server = post<{userid: number}, {message: string}, string>(server, userMessages.then(end), bodyType, async(req) => {
   return {
     status: 200,
     headers: {},
