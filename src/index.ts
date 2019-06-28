@@ -10,17 +10,17 @@ import { identity } from 'fp-ts/lib/function';
 
 
 export type TResponse<RT> = Readonly<{
-  status: number,
-  body: RT,
+  status: number
   headers: Record<string, string>
+  body: RT
 }>
 
 export type TRequest<PT, BT = any> = Readonly<{
+  status: number
+  headers: Record<string, string>
   url: string
   path: PT
-  status: number
   body: BT
-  headers: Record<string, string>
 }>
 
 export type TServer = Readonly<{
@@ -87,13 +87,13 @@ export const post = <TPath extends object, TRequestBody, TResponseBody> (server:
 }
 
 const koaContextToRequest = <PT, BT> (ctx: Koa.Context, path: PT, body?: BT): TRequest<PT> => {
-  return {
+  return Object.freeze({
     url: ctx.url,
     status: ctx.status,
     headers: ctx.headers,
     body: body || ctx.body,
     path
-  }
+  })
 }
 
 const applyResponseToKoaContext = <TResponseBody> (response: TResponse<TResponseBody>, ctx: Koa.Context)  => {
