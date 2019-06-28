@@ -29,17 +29,17 @@ export type TServer = Readonly<{
 }>
 
 export const createServer = (): TServer => {
-  return {
+  return Object.freeze({
     platform: new Koa(),
     middleware: []
-  }
+  })
 }
 
 export const use = (server: TServer, middleware: Koa.Middleware): TServer => {
-  return {
+  return Object.freeze({
     ...server,
     middleware: [...(server.middleware || []), middleware]
-  }
+  })
 }
 
 export const get = <TPath extends object, TResponseBody> (server: TServer, matcher: Match<TPath>, handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>) => {
