@@ -47,6 +47,7 @@ driver(stack3, 3000).run()
 
 ## Advanced query parsing example
 ```typescript
+
 import { end, lit, query } from 'fp-ts-routing'
 import * as io from "io-ts"
 import { get, driver } from "."
@@ -60,13 +61,15 @@ const stack: TMiddlewareStack = []
 type TUsersPath = {
   filter: undefined | string
   validStatusCodes: undefined | number[]
+  sortBy: undefined | string
   sortDirection: undefined | boolean
 }
 
-const usersQuery = io.interface({
+const usersQuery = io.type({
   filter: io.union([ io.undefined, io.string ]),
   validStatusCodes: io.union([ io.undefined, ArrayFromString<number>(NumberFromString) ]),
-  sortDirection: io.union([ io.undefined, BooleanFromString ])
+  sortBy: io.union([ io.undefined, io.string]),
+  sortDirection: io.union([ io.undefined, BooleanFromString])
 })
 
 const users = lit("users")
@@ -76,11 +79,7 @@ const stack2 = [...stack, ...get<TUsersPath, string>(usersList.then(end), async(
   return {
     status: 200,
     headers: none,
-    body: JSON.stringify({
-      filter: req.path.filter,
-      validStatusCodes: req.path.validStatusCodes,
-      sortDirection: req.path.sortDirection
-    })
+    body: JSON.stringify(req.path) // {filter: "foo", validStatusCodes: [1, 2], sortBy: "field" sortDirection: true}
   }
 })]
 
