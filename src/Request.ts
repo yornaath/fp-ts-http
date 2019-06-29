@@ -11,7 +11,7 @@ export type TRequest<PT, BT = any> = Readonly<{
   stream: IncomingMessage
 }>
 
-export const fromKoaContext = <PT, BT> (ctx: Koa.Context, path: PT, body?: BT): TRequest<PT> => {
+export const fromKoaContext = <PT, BT = any> (ctx: Koa.Context, path: PT, body?: BT): TRequest<PT, BT> => {
   return Object.freeze({
     url: ctx.url,
     status: ctx.status,

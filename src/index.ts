@@ -10,11 +10,15 @@ import { identity } from 'fp-ts/lib/function';
 import { TRequest, fromKoaContext } from './Request';
 import { TResponse } from './Response';
 import { TMiddlewareStack, from } from './Middleware';
+import { reporter } from 'io-ts-reporters';
 
-export const withoutRequestBody = (method: "GET" | "DELETE" | "OPTIONS") => 
-  <TPath extends object, TResponseBody> (
-    matcher: Match<TPath>, 
-    handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
+export type THttpMethod = "GET" | "DELETE" | "OPTIONS" | "POST" | "PUT" | "PATCH"
+
+const withoutRequestBody = (method: THttpMethod) => 
+  <TPath extends object, TRequestQuery, TResponseBody> (
+    matcher: Match<TPath>,
+    queryType: t.Decoder<object, TRequestQuery>,
+    handler: (req: TRequest<TPath & TRequestQuery>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
       return from(async (ctx, next) => {
         
         if(ctx.method.toUpperCase() !== method)
@@ -27,14 +31,14 @@ export const withoutRequestBody = (method: "GET" | "DELETE" | "OPTIONS") =>
         if(isNull(matchPath))
           return next()
         
-        const withQueryRoute = Route.parse(ctx.request.url)
-        const withQueryMatch = parse(pathParser, withQueryRoute, null as any)
+        const query = queryType.decode(ctx.query)
         
-        if(isNull(withQueryMatch)) {
-          return ctx.throw(400, "queryError")
-        }
+        if(query.isLeft())
+          return ctx.throw(400, JSON.stringify({
+            errors: reporter(query)
+          }))
         
-        const request = fromKoaContext(ctx, withQueryMatch)
+        const request = fromKoaContext<TPath & TRequestQuery>(ctx, {...matchPath, ...query.value})
         const response = await handler(request)
         
         applyResponseToKoaContext<TResponseBody>(response, ctx)
@@ -45,11 +49,12 @@ export const get = withoutRequestBody("GET")
 export const options = withoutRequestBody("OPTIONS")
 export const del = withoutRequestBody("DELETE")
 
-const withRequestBody = (method: "POST" | "PUT" | "PATCH") => 
-  <TPath extends object, TRequestBody, TResponseBody> (
+const withRequestBody = (method: THttpMethod) => 
+  <TPath extends object, TRequestQuery, TRequestBody, TResponseBody> (
     matcher: Match<TPath>, 
+    queryType: t.Decoder<object, TRequestQuery>,
     bodyParser: t.Type<TRequestBody>, 
-    handler: (req: TRequest<TPath, TRequestBody>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
+    handler: (req: TRequest<TPath & TRequestQuery, TRequestBody>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
       return from(async (ctx, next) => {
         
         if(ctx.method.toUpperCase() !== method)
@@ -61,19 +66,20 @@ const withRequestBody = (method: "POST" | "PUT" | "PATCH") =>
         
         if(isNull(matchPath))
           return next()
-        
-        const withQueryRoute = Route.parse(ctx.request.url)
-        const withQueryMatch = parse(pathParser, withQueryRoute, null as any)
 
-        if(isNull(withQueryMatch))
-          return ctx.throw(400, "query params invalid")
+        const query = queryType.decode(ctx.query)
+      
+        if(query.isLeft())
+          return ctx.throw(400, JSON.stringify({
+            errors: reporter(query)
+          }))
 
         const decodedBody = bodyParser.decode(ctx.request.body)
         
         if(decodedBody.isLeft())
           return ctx.throw(400, "request body invalid")
 
-        const request = fromKoaContext<TPath, TRequestBody>(ctx, withQueryMatch, decodedBody.value)
+        const request = fromKoaContext<TPath & TRequestQuery, TRequestBody>(ctx, {...matchPath, ...query.value}, decodedBody.value)
 
         const response = await handler(request)
         

@@ -1,6 +1,6 @@
 {
   "name": "fp-ts-http",
-  "version": "0.0.12",
+  "version": "0.0.2",
   "description": "Opinionated Typesafe http middleware library using fp-ts-routing and io-ts",
   "keywords": [
     "functional",
