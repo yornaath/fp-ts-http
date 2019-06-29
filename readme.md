@@ -1,4 +1,7 @@
 
+# fp-ts-http
+
+```typescript
 import { end, lit, int } from 'fp-ts-routing'
 import * as t from "io-ts"
 import { get, post, driver } from "./src"
@@ -31,3 +34,5 @@ const stack3 = [...stack2, ...post<{userid: number}, {message: string}, string>(
 
 driver(stack3, 3000).run()
   .then(() => console.log("server running"))
+
+```
