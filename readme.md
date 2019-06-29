@@ -30,7 +30,7 @@ const stack2 = [...stack, ...get<{userid: number}, string>(userById.then(end), a
 })]
 
 const userMessages = userById.then(lit("messages"))
-const userMessageDto = io.type({ message: t.string })
+const userMessageDto = io.type({ message: io.string })
 
 const stack3 = [...stack2, ...post<{userid: number}, {message: string}, string>(userMessages.then(end), userMessageDto, async(req) => {
   return {
