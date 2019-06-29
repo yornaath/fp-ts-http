@@ -12,7 +12,7 @@ npm i fp-ts-http
 ## Example
 ```typescript
 import { end, lit, int } from 'fp-ts-routing'
-import * as t from "io-ts"
+import * as io from "io-ts"
 import { get, post, driver } from "fp-ts-http"
 import { TMiddlewareStack } from 'fp-ts-http/lib/Middleware';
 import { none } from 'fp-ts/lib/Option';
@@ -30,7 +30,7 @@ const stack2 = [...stack, ...get<{userid: number}, string>(userById.then(end), a
 })]
 
 const userMessages = userById.then(lit("messages"))
-const userMessageDto = t.type({ message: t.string })
+const userMessageDto = io.type({ message: t.string })
 
 const stack3 = [...stack2, ...post<{userid: number}, {message: string}, string>(userMessages.then(end), userMessageDto, async(req) => {
   return {
