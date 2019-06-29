@@ -36,7 +36,7 @@ const withoutRequestBody = (method: THttpMethod) =>
         if(query.isLeft())
           return ctx.throw(400, JSON.stringify({
             errors: reporter(query)
-          }))
+          }, null, 4))
         
         const request = fromKoaContext<TPath & TRequestQuery>(ctx, {...matchPath, ...query.value})
         const response = await handler(request)
@@ -44,10 +44,6 @@ const withoutRequestBody = (method: THttpMethod) =>
         applyResponseToKoaContext<TResponseBody>(response, ctx)
       })
     }
-
-export const get = withoutRequestBody("GET")
-export const options = withoutRequestBody("OPTIONS")
-export const del = withoutRequestBody("DELETE")
 
 const withRequestBody = (method: THttpMethod) => 
   <TPath extends object, TRequestQuery, TRequestBody, TResponseBody> (
@@ -72,7 +68,7 @@ const withRequestBody = (method: THttpMethod) =>
         if(query.isLeft())
           return ctx.throw(400, JSON.stringify({
             errors: reporter(query)
-          }))
+          }, null, 4))
 
         const decodedBody = bodyParser.decode(ctx.request.body)
         
@@ -87,10 +83,6 @@ const withRequestBody = (method: THttpMethod) =>
       })
     }
 
-export const post = withRequestBody("POST");
-export const put = withRequestBody("PUT");
-export const patch = withRequestBody("PATCH");
-
 const applyResponseToKoaContext = <TResponseBody> (response: TResponse<TResponseBody>, ctx: Koa.Context)  => {
   if(response.headers.isSome()) {
     const headers = response.headers.value
@@ -101,6 +93,14 @@ const applyResponseToKoaContext = <TResponseBody> (response: TResponse<TResponse
   ctx.status = response.status
   ctx.body = response.body
 }
+
+export const get = withoutRequestBody("GET")
+export const options = withoutRequestBody("OPTIONS")
+export const del = withoutRequestBody("DELETE")
+export const post = withRequestBody("POST");
+export const put = withRequestBody("PUT");
+export const patch = withRequestBody("PATCH");
+
 
 export const driver = (stack :TMiddlewareStack, port: number) => {
   return new Task(() => {
