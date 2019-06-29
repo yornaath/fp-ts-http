@@ -21,24 +21,29 @@ const stack: TMiddlewareStack = []
 
 const userById = lit('users').then(int("userid"))
 
-const stack2 = [...stack, ...get<{userid: number}, {}, string>(userById.then(end), io.strict({}), async(req) => {
-  return {
-    status: 200,
-    headers: none,
-    body: JSON.stringify(req.path)
-  }
-})]
+const stack2 = [
+  ...stack, 
+  ...get<{userid: number}, {}, string>(userById.then(end), io.strict({}), 
+  async(req) => {
+    return {
+      status: 200,
+      headers: none,
+      body: JSON.stringify(req.path)
+    }
+  })]
 
 const userMessages = userById.then(lit("messages"))
 const userMessageDto = io.type({ message: io.string })
 
-const stack3 = [...stack2, ...post<{userid: number}, {}, {message: string}, string>(userMessages.then(end), io.strict({}), userMessageDto, async(req) => {
-  return {
-    status: 200,
-    headers: none,
-    body: JSON.stringify(req.path)
-  }
-})]
+const stack3 = [
+  ...stack2, 
+  ...post<{userid: number}, {}, {message: string}, string>(userMessages.then(end), io.strict({}), userMessageDto, async(req) => {
+    return {
+      status: 200,
+      headers: none,
+      body: JSON.stringify(req.path)
+    }
+  })]
 
 
 driver(stack3, 3000).run()
@@ -75,17 +80,20 @@ type TUsersResponseBody = string
 
 const users = lit("users").then(str("type"))
 
-const stack2 = [...stack, ...get<TUsersPath, TUsersQuery, TUsersResponseBody>(users.then(end), usersQuery, async(req) => {
-  return {
-    status: 200,
-    headers: none,
-    body: await UserRepository.find({ 
-      type: req.path.type, 
-      sortBy: req.path.sortBy,
-      sortDirection: req.path.sortDirection
-    })
-  }
-})]
+const stack2 = [
+  ...stack, 
+  ...get<TUsersPath, TUsersQuery, TUsersResponseBody>(users.then(end), usersQuery, 
+  async(req) => {
+    return {
+      status: 200,
+      headers: none,
+      body: await UserRepository.find({ 
+        type: req.path.type, 
+        sortBy: req.path.sortBy,
+        sortDirection: req.path.sortDirection
+      })
+    }
+  })]
 
 type TUserMessageDto = {
   message: string
@@ -96,22 +104,25 @@ const userMessageDto = io.type({ message: io.string })
 
 type TUserMessagesResponseBody = string
 
-const stack3 = [...stack2, ...post<TUsersPath, TUsersQuery, TUserMessageDto, TUserMessagesResponseBody>(userMessages.then(end), usersQuery, userMessageDto, async(req) => {
+const stack3 = [
+  ...stack2, 
+  ...post<TUsersPath, TUsersQuery, TUserMessageDto, TUserMessagesResponseBody>(userMessages.then(end), usersQuery, userMessageDto, 
+  async(req) => {
 
-  const users = await UserRepository.find({ 
-    type: req.path.type, 
-    sortBy: req.path.sortBy,
-    sortDirection: req.path.sortDirection
-  })
+    const users = await UserRepository.find({ 
+      type: req.path.type, 
+      sortBy: req.path.sortBy,
+      sortDirection: req.path.sortDirection
+    })
 
-  await Promise.all(users.map(async user => sendMessageToUser(user, req.body)))
+    await Promise.all(users.map(async user => sendMessageToUser(user, req.body)))
 
-  return {
-    status: 200,
-    headers: none,
-    body: JSON.stringify(req.path)
-  }
-})]
+    return {
+      status: 200,
+      headers: none,
+      body: JSON.stringify(req.path)
+    }
+  })]
 
 
 driver(stack3, 3000).run()
