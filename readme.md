@@ -25,7 +25,7 @@ const stack2 = [...stack, ...get<{userid: number}, string>(userById.then(end), a
   return {
     status: 200,
     headers: none,
-    body: "get success: " + req.path.userid
+    body: `fetched user ${req.path.userid}`
   }
 })]
 
