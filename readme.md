@@ -1,6 +1,14 @@
 
 # fp-ts-http
 
+### Install
+
+Includes `fp-ts` `fp-ts-routing` and `io-ts`
+
+```bash
+npm i fp-ts-http
+```
+
 ```typescript
 import { end, lit, int } from 'fp-ts-routing'
 import * as t from "io-ts"
