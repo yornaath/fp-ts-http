@@ -1,8 +1,22 @@
 {
   "name": "fp-ts-http",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "description": "Opinionated Typesafe http middleware library using fp-ts-routing and io-ts",
-  "keywords": ["functional", "typesafe", "http", "rest", "routing", "fp-ts", "fp-ts-routing", "io-ts"],
+  "keywords": [
+    "functional",
+    "typesafe",
+    "http",
+    "rest",
+    "routing",
+    "fp-ts",
+    "fp-ts-routing",
+    "io-ts"
+  ],
+  "files": [
+    "lib",
+    "es6"
+  ],
+  "typings": "lib/index.d.ts",
   "main": "lib/index.js",
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' test.ts -- --experimental-modules",

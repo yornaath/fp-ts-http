@@ -4,8 +4,8 @@
 ```typescript
 import { end, lit, int } from 'fp-ts-routing'
 import * as t from "io-ts"
-import { get, post, driver } from "fp-ts-routing"
-import { TMiddlewareStack } from 'fp-ts-routing/lib/Middleware';
+import { get, post, driver } from "fp-ts-http"
+import { TMiddlewareStack } from 'fp-ts-http/lib/Middleware';
 import { none } from 'fp-ts/lib/Option';
 
 const stack: TMiddlewareStack = []
@@ -34,5 +34,4 @@ const stack3 = [...stack2, ...post<{userid: number}, {message: string}, string>(
 
 driver(stack3, 3000).run()
   .then(() => console.log("server running"))
-
 ```
