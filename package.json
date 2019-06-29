@@ -1,24 +1,31 @@
 {
   "name": "fp-ts-http",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.1",
+  "description": "Opinionated Typesafe http middleware library using fp-ts-routing and io-ts",
+  "keywords": ["functional", "typesafe", "http", "rest", "routing", "fp-ts", "fp-ts-routing", "io-ts"],
+  "main": "lib/index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' src/test.ts"
+    "dev": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' test.ts -- --experimental-modules",
+    "build": "npm run clean && npm run build:lib && npm run build:es6",
+    "build:lib": "tsc",
+    "build:es6": "tsc -p tsconfig.es6.json",
+    "clean": "rimraf lib/* es6/*"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gorillatron/bongs.git"
+    "url": "git+https://github.com/gorillatron/fp-ts-http.git"
   },
-  "author": "",
-  "license": "ISC",
+  "authors": "Jørn Andre Tangen @gorillatron",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/gorillatron/bongs/issues"
+    "url": "https://github.com/gorillatron/fp-ts-http/issues"
   },
-  "homepage": "https://github.com/gorillatron/bongs#readme",
+  "homepage": "https://github.com/gorillatron/fp-ts-http#readme",
   "devDependencies": {
     "@types/node": "^12.0.10",
     "nodemon": "^1.19.1",
+    "renamer": "^1.1.2",
+    "rimraf": "^2.6.3",
     "typescript": "^3.5.2"
   },
   "dependencies": {

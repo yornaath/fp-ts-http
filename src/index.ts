@@ -71,9 +71,11 @@ export const put = withRequestBody("PUT");
 export const patch = withRequestBody("PATCH");
 
 const applyResponseToKoaContext = <TResponseBody> (response: TResponse<TResponseBody>, ctx: Koa.Context)  => {
-  for(const header in response.headers) {
-    console.log(header, response.headers[header])
-    ctx.set(header, response.headers[header])
+  if(response.headers.isSome()) {
+    const headers = response.headers.value
+    for(const header in headers) {
+      ctx.set(header, headers[header])
+    }
   }
   ctx.status = response.status
   ctx.body = response.body

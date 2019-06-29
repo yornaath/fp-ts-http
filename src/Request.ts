@@ -1,6 +1,6 @@
 
 import * as Koa from "koa"
-import { Stream } from "stream";
+import { IncomingMessage } from "http";
 
 export type TRequest<PT, BT = any> = Readonly<{
   status: number
@@ -8,7 +8,7 @@ export type TRequest<PT, BT = any> = Readonly<{
   url: string
   path: PT
   body: BT
-  stream: Stream
+  stream: IncomingMessage
 }>
 
 export const koaContextToRequest = <PT, BT> (ctx: Koa.Context, path: PT, body?: BT): TRequest<PT> => {
