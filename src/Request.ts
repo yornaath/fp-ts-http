@@ -18,6 +18,6 @@ export const fromKoaContext = <PT, BT> (ctx: Koa.Context, path: PT, body?: BT): 
     headers: ctx.headers,
     body: body || ctx.body,
     path,
-    stream: ctx.req
+    stream: ctx.req,
   })
 }

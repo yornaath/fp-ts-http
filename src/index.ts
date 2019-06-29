@@ -1,5 +1,5 @@
 
-import Koa from 'koa'
+import Koa, { Context } from 'koa'
 import composeMiddleware from 'koa-compose'
 import { Route, parse, Match } from 'fp-ts-routing'
 import { Task } from 'fp-ts/lib/Task'
@@ -21,12 +21,20 @@ export const withoutRequestBody = (method: "GET" | "DELETE" | "OPTIONS") =>
           return next()
 
         const pathParser = matcher.parser.map(identity)
-        const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
-
-        if(isNull(match))
+        const pathRoute = Route.parse(ctx.request.path)
+        const matchPath = parse(pathParser, pathRoute, null as any)
+        
+        if(isNull(matchPath))
           return next()
-
-        const request = fromKoaContext(ctx, match)
+        
+        const withQueryRoute = Route.parse(ctx.request.url)
+        const withQueryMatch = parse(pathParser, withQueryRoute, null as any)
+        
+        if(isNull(withQueryMatch)) {
+          return ctx.throw(400, "queryError")
+        }
+        
+        const request = fromKoaContext(ctx, withQueryMatch)
         const response = await handler(request)
         
         applyResponseToKoaContext<TResponseBody>(response, ctx)
@@ -48,17 +56,24 @@ const withRequestBody = (method: "POST" | "PUT" | "PATCH") =>
           return next()
 
         const pathParser = matcher.parser.map(identity)
-        const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
-
-        if(isNull(match))
+        const pathRoute = Route.parse(ctx.request.path)
+        const matchPath = parse(pathParser, pathRoute, null as any)
+        
+        if(isNull(matchPath))
           return next()
         
+        const withQueryRoute = Route.parse(ctx.request.url)
+        const withQueryMatch = parse(pathParser, withQueryRoute, null as any)
+
+        if(isNull(withQueryMatch))
+          return ctx.throw(400, "query params invalid")
+
         const decodedBody = bodyParser.decode(ctx.request.body)
         
         if(decodedBody.isLeft())
-          return ctx.throw(400)
+          return ctx.throw(400, "request body invalid")
 
-        const request = fromKoaContext<TPath, TRequestBody>(ctx, match, decodedBody.value)
+        const request = fromKoaContext<TPath, TRequestBody>(ctx, withQueryMatch, decodedBody.value)
 
         const response = await handler(request)
         
@@ -84,7 +99,14 @@ const applyResponseToKoaContext = <TResponseBody> (response: TResponse<TResponse
 export const driver = (stack :TMiddlewareStack, port: number) => {
   return new Task(() => {
     const koa = new Koa()
-    const middleware = composeMiddleware([koaBody(), ...stack])
+    const middleware = composeMiddleware([
+      async(ctx: Context, next) => {
+        ctx.set('content-type', 'application/json')
+        return next()
+      },
+      koaBody(), 
+      ...stack
+    ])
     koa.use(middleware)
     return new Promise(resolve => koa.listen(port, resolve))
   })

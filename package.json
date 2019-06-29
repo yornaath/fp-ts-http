@@ -1,6 +1,6 @@
 {
   "name": "fp-ts-http",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Opinionated Typesafe http middleware library using fp-ts-routing and io-ts",
   "keywords": [
     "functional",
@@ -19,7 +19,7 @@
   "typings": "lib/index.d.ts",
   "main": "lib/index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' test.ts -- --experimental-modules",
+    "dev": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' src/test.ts -- --experimental-modules",
     "build:watch": "concurrently 'npm run build:lib:watch' 'npm run build:es6:watch'",
     "build": "npm run clean && concurrently 'npm run build:lib' 'npm run build:es6'",
     "build:lib": "tsc",
@@ -56,6 +56,7 @@
     "fp-ts-most": "^0.2.1",
     "fp-ts-routing": "^0.4.3",
     "io-ts": "^1.10.2",
+    "io-ts-reporters": "0.0.21",
     "koa": "^2.7.0",
     "koa-body": "^4.1.0",
     "koa-compose": "^4.1.0"
