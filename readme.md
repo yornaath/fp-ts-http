@@ -9,6 +9,7 @@ Includes `fp-ts` `fp-ts-routing` and `io-ts`
 npm i fp-ts-http
 ```
 
+## Example
 ```typescript
 import { end, lit, int } from 'fp-ts-routing'
 import * as t from "io-ts"
