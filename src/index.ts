@@ -1,113 +1,89 @@
 
 import Koa from 'koa'
 import composeMiddleware from 'koa-compose'
-import { Route, zero, parse, lit, end, Parser, Match, int } from 'fp-ts-routing'
-import { Task, task } from 'fp-ts/lib/Task'
+import { Route, parse, Match } from 'fp-ts-routing'
+import { Task } from 'fp-ts/lib/Task'
 import * as t from "io-ts"
 import { isNull } from 'util';
 import koaBody from "koa-body"
 import { identity } from 'fp-ts/lib/function';
+import { TRequest, koaContextToRequest } from './Request';
+import { TResponse } from './Response';
+import { TMiddlewareStack, from } from './Middleware';
 
+export const withoutRequestBody = (method: "GET" | "DELETE" | "OPTIONS") => 
+  <TPath extends object, TResponseBody> (
+    matcher: Match<TPath>, 
+    handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
+      return from(async (ctx, next) => {
+        
+        if(ctx.method.toUpperCase() !== method)
+          return next()
 
-export type TResponse<RT> = Readonly<{
-  status: number
-  headers: Record<string, string>
-  body: RT
-}>
+        const pathParser = matcher.parser.map(identity)
+        const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
 
-export type TRequest<PT, BT = any> = Readonly<{
-  status: number
-  headers: Record<string, string>
-  url: string
-  path: PT
-  body: BT
-}>
+        if(isNull(match))
+          return next()
 
-export type TServer = Readonly<{
-  platform: Koa
-  middleware?: Koa.Middleware[]
-}>
+        const request = koaContextToRequest(ctx, match)
+        const response = await handler(request)
+        
+        applyResponseToKoaContext<TResponseBody>(response, ctx)
+      })
+    }
 
-export const createServer = (): TServer => {
-  return Object.freeze({
-    platform: new Koa(),
-    middleware: []
-  })
-}
+export const get = withoutRequestBody("GET")
+export const options = withoutRequestBody("OPTIONS")
+export const del = withoutRequestBody("DELETE")
 
-export const use = (server: TServer, middleware: Koa.Middleware): TServer => {
-  return Object.freeze({
-    ...server,
-    middleware: [...(server.middleware || []), middleware]
-  })
-}
+const withRequestBody = (method: "POST" | "PUT" | "PATCH") => 
+  <TPath extends object, TRequestBody, TResponseBody> (
+    matcher: Match<TPath>, 
+    bodyParser: t.Type<TRequestBody>, 
+    handler: (req: TRequest<TPath, TRequestBody>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
+      return from(async (ctx, next) => {
+        
+        if(ctx.method.toUpperCase() !== method)
+          return next()
 
-export const get = <TPath extends object, TResponseBody> (server: TServer, matcher: Match<TPath>, handler: (req: TRequest<TPath>) => Promise<TResponse<TResponseBody>>) => {
-  return use(server, async (ctx, next) => {
-    
-    if(ctx.method.toUpperCase() !== "GET")
-      return next()
+        const pathParser = matcher.parser.map(identity)
+        const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
 
-    const pathParser = matcher.parser.map(identity)
-    const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
+        if(isNull(match))
+          return next()
+        
+        const decodedBody = bodyParser.decode(ctx.request.body)
+        
+        if(decodedBody.isLeft())
+          return ctx.throw(400)
 
-    if(isNull(match))
-      return next()
+        const request = koaContextToRequest<TPath, TRequestBody>(ctx, match, decodedBody.value)
 
-    const request = koaContextToRequest(ctx, match)
-    const response = await handler(request)
-    
-    applyResponseToKoaContext<TResponseBody>(response, ctx)
-  })
-}
+        const response = await handler(request)
+        
+        applyResponseToKoaContext<TResponseBody>(response, ctx)
+      })
+    }
 
-export const post = <TPath extends object, TRequestBody, TResponseBody> (server: TServer, matcher: Match<TPath>, bodyParser: t.Type<TRequestBody>, handler: (req: TRequest<TPath, TRequestBody>) => Promise<TResponse<TResponseBody>>) => {
-  return use(server, async (ctx, next) => {
-    
-    if(ctx.method.toUpperCase() !== "POST")
-      return next()
-
-    const pathParser = matcher.parser.map(identity)
-    const match = parse(pathParser, Route.parse(ctx.request.url), null as any)
-
-    if(isNull(match))
-      return next()
-    
-    const decodedBody = bodyParser.decode(ctx.request.body)
-    
-    if(decodedBody.isLeft())
-      return ctx.throw(400)
-
-    const request = koaContextToRequest<TPath, TRequestBody>(ctx, match, decodedBody.value)
-
-    const response = await handler(request)
-    
-    applyResponseToKoaContext<TResponseBody>(response, ctx)
-  })
-}
-
-const koaContextToRequest = <PT, BT> (ctx: Koa.Context, path: PT, body?: BT): TRequest<PT> => {
-  return Object.freeze({
-    url: ctx.url,
-    status: ctx.status,
-    headers: ctx.headers,
-    body: body || ctx.body,
-    path
-  })
-}
+export const post = withRequestBody("POST");
+export const put = withRequestBody("PUT");
+export const patch = withRequestBody("PATCH");
 
 const applyResponseToKoaContext = <TResponseBody> (response: TResponse<TResponseBody>, ctx: Koa.Context)  => {
-  for(const header in response.headers)
+  for(const header in response.headers) {
+    console.log(header, response.headers[header])
     ctx.set(header, response.headers[header])
+  }
   ctx.status = response.status
   ctx.body = response.body
 }
 
-
-export const driver = (server :TServer, port: number) => {
+export const driver = (stack :TMiddlewareStack, port: number) => {
   return new Task(() => {
-    const middleware = composeMiddleware([koaBody(), ...server.middleware])
-    server.platform.use(middleware)
-    return new Promise(resolve => server.platform.listen(port, resolve))
+    const koa = new Koa()
+    const middleware = composeMiddleware([koaBody(), ...stack])
+    koa.use(middleware)
+    return new Promise(resolve => koa.listen(port, resolve))
   })
 }
