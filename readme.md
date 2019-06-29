@@ -13,30 +13,30 @@ npm i fp-ts-http
 ```typescript
 import { end, lit, int } from 'fp-ts-routing'
 import * as io from "io-ts"
-import { get, post, driver } from "fp-ts-http"
-import { TMiddlewareStack } from 'fp-ts-http/lib/Middleware';
+import { get, post, driver } from "./"
+import { TMiddlewareStack } from './Middleware';
 import { none } from 'fp-ts/lib/Option';
 
 const stack: TMiddlewareStack = []
 
 const userById = lit('users').then(int("userid"))
 
-const stack2 = [...stack, ...get<{userid: number}, string>(userById.then(end), async(req) => {
+const stack2 = [...stack, ...get<{userid: number}, {}, string>(userById.then(end), io.strict({}), async(req) => {
   return {
     status: 200,
     headers: none,
-    body: `fetched user ${req.path.userid}`
+    body: JSON.stringify(req.path)
   }
 })]
 
 const userMessages = userById.then(lit("messages"))
 const userMessageDto = io.type({ message: io.string })
 
-const stack3 = [...stack2, ...post<{userid: number}, {message: string}, string>(userMessages.then(end), userMessageDto, async(req) => {
+const stack3 = [...stack2, ...post<{userid: number}, {}, {message: string}, string>(userMessages.then(end), io.strict({}), userMessageDto, async(req) => {
   return {
     status: 200,
     headers: none,
-    body: `post message "${req.body.message}" to user ${req.path.userid}`
+    body: JSON.stringify(req.path)
   }
 })]
 
