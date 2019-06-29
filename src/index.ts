@@ -7,7 +7,7 @@ import * as t from "io-ts"
 import { isNull } from 'util';
 import koaBody from "koa-body"
 import { identity } from 'fp-ts/lib/function';
-import { TRequest, koaContextToRequest } from './Request';
+import { TRequest, fromKoaContext } from './Request';
 import { TResponse } from './Response';
 import { TMiddlewareStack, from } from './Middleware';
 
@@ -26,7 +26,7 @@ export const withoutRequestBody = (method: "GET" | "DELETE" | "OPTIONS") =>
         if(isNull(match))
           return next()
 
-        const request = koaContextToRequest(ctx, match)
+        const request = fromKoaContext(ctx, match)
         const response = await handler(request)
         
         applyResponseToKoaContext<TResponseBody>(response, ctx)
@@ -58,7 +58,7 @@ const withRequestBody = (method: "POST" | "PUT" | "PATCH") =>
         if(decodedBody.isLeft())
           return ctx.throw(400)
 
-        const request = koaContextToRequest<TPath, TRequestBody>(ctx, match, decodedBody.value)
+        const request = fromKoaContext<TPath, TRequestBody>(ctx, match, decodedBody.value)
 
         const response = await handler(request)
         
