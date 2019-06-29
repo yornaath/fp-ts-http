@@ -4,8 +4,8 @@
 ```typescript
 import { end, lit, int } from 'fp-ts-routing'
 import * as t from "io-ts"
-import { get, post, driver } from "./src"
-import { TMiddlewareStack } from './src/Middleware';
+import { get, post, driver } from "fp-ts-routing"
+import { TMiddlewareStack } from 'fp-ts-routing/lib/Middleware';
 import { none } from 'fp-ts/lib/Option';
 
 const stack: TMiddlewareStack = []
