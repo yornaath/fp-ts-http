@@ -18,7 +18,7 @@ const withoutRequestBody = (method: THttpMethod) =>
   <TPath extends object, TRequestQuery, TResponseBody> (
     matcher: Match<TPath>,
     queryType: t.Decoder<object, TRequestQuery>,
-    handler: (req: TRequest<TPath & TRequestQuery>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
+    handler: (req: TRequest<TPath, TRequestQuery>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
       return from(async (ctx, next) => {
         
         if(ctx.method.toUpperCase() !== method)
@@ -38,7 +38,7 @@ const withoutRequestBody = (method: THttpMethod) =>
             errors: reporter(query)
           }, null, 4))
         
-        const request = fromKoaContext<TPath & TRequestQuery>(ctx, {...matchPath, ...query.value})
+        const request = fromKoaContext<TPath, TRequestQuery>(ctx, matchPath, query.value)
         const response = await handler(request)
         
         applyResponseToKoaContext<TResponseBody>(response, ctx)
@@ -50,7 +50,7 @@ const withRequestBody = (method: THttpMethod) =>
     matcher: Match<TPath>, 
     queryType: t.Decoder<object, TRequestQuery>,
     bodyParser: t.Type<TRequestBody>, 
-    handler: (req: TRequest<TPath & TRequestQuery, TRequestBody>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
+    handler: (req: TRequest<TPath, TRequestQuery, TRequestBody>) => Promise<TResponse<TResponseBody>>): TMiddlewareStack => {
       return from(async (ctx, next) => {
         
         if(ctx.method.toUpperCase() !== method)
@@ -75,7 +75,7 @@ const withRequestBody = (method: THttpMethod) =>
         if(decodedBody.isLeft())
           return ctx.throw(400, "request body invalid")
 
-        const request = fromKoaContext<TPath & TRequestQuery, TRequestBody>(ctx, {...matchPath, ...query.value}, decodedBody.value)
+        const request = fromKoaContext<TPath, TRequestQuery, TRequestBody>(ctx, matchPath, query.value, decodedBody.value)
 
         const response = await handler(request)
         
