@@ -73,7 +73,9 @@ const withRequestBody = (method: THttpMethod) =>
         const decodedBody = bodyParser.decode(ctx.request.body)
         
         if(decodedBody.isLeft())
-          return ctx.throw(400, "request body invalid")
+          return ctx.throw(400, JSON.stringify({
+            errors: reporter(decodedBody)
+          }, null, 4))
 
         const request = fromKoaContext<TPath, TRequestQuery, TRequestBody>(ctx, matchPath, query.value, decodedBody.value)
 
