@@ -39,10 +39,16 @@
   },
   "homepage": "https://github.com/gorillatron/fp-ts-http#readme",
   "devDependencies": {
+    "@types/lodash.chunk": "^4.2.6",
     "@types/node": "^12.0.10",
+    "@types/request-promise": "^4.1.44",
+    "artillery": "^1.6.0-28",
+    "bluebird": "^3.5.5",
     "concurrently": "^4.1.1",
+    "lodash.chunk": "^4.2.0",
     "nodemon": "^1.19.1",
     "renamer": "^1.1.2",
+    "request-promise": "^4.2.4",
     "rimraf": "^2.6.3",
     "typescript": "^3.5.2"
   },
